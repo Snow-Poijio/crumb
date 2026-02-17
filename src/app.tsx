@@ -21,7 +21,7 @@ import {
   type TaskOperation,
 } from './services/tasks.js';
 
-type InputMode = 'none' | 'add' | 'addChild' | 'edit' | 'ai' | 'confirmClear' | 'help';
+type InputMode = 'none' | 'add' | 'addChild' | 'edit' | 'ai' | 'aiTask' | 'confirmClear' | 'help';
 
 export default function App() {
   const { exit } = useApp();
@@ -242,6 +242,14 @@ export default function App() {
       return;
     }
 
+    // AI prompt for selected task
+    if (input === 's') {
+      if (selectedTask) {
+        setInputMode('aiTask');
+      }
+      return;
+    }
+
     // Help
     if (input === '?') {
       setInputMode('help');
@@ -318,6 +326,9 @@ export default function App() {
     if (inputMode === 'ai') {
       return <AIPrompt tasks={tasks} onApply={handleAIApply} onCancel={handleCancel} />;
     }
+    if (inputMode === 'aiTask') {
+      return <AIPrompt tasks={tasks} targetTask={selectedTask} onApply={handleAIApply} onCancel={handleCancel} />;
+    }
     if (inputMode === 'confirmClear') {
       return (
         <Box borderStyle="round" borderColor="red" paddingX={2}>
@@ -341,7 +352,8 @@ export default function App() {
           <Text><Text bold>x/X</Text><Text dimColor>      削除/全削除</Text></Text>
           <Text><Text bold>u</Text><Text dimColor>        元に戻す (複数回可)</Text></Text>
           <Text><Text bold>Space</Text><Text dimColor>    折りたたみ</Text></Text>
-          <Text><Text bold>/</Text><Text dimColor>        AI</Text></Text>
+          <Text><Text bold>s</Text><Text dimColor>        選択タスクをAIで操作</Text></Text>
+          <Text><Text bold>/</Text><Text dimColor>        AI (全体)</Text></Text>
           <Text><Text bold>q</Text><Text dimColor>        終了</Text></Text>
           <Box marginTop={1}>
             <Text dimColor>何かキーを押して閉じる</Text>

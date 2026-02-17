@@ -9,6 +9,7 @@ type Phase = 'input' | 'thinking' | 'preview' | 'revise' | 'error';
 
 interface AIPromptProps {
   tasks: Task[];
+  targetTask?: Task | null;
   onApply: (ops: TaskOperation[]) => void;
   onCancel: () => void;
 }
@@ -43,7 +44,7 @@ function renderOpLine(op: TaskOperation, names: Map<string, string>, addedNames:
   }
 }
 
-export default function AIPrompt({ tasks, onApply, onCancel }: AIPromptProps) {
+export default function AIPrompt({ tasks, targetTask, onApply, onCancel }: AIPromptProps) {
   const [phase, setPhase] = useState<Phase>('input');
   const [prompt, setPrompt] = useState('');
   const [revisePrompt, setRevisePrompt] = useState('');
@@ -99,7 +100,10 @@ export default function AIPrompt({ tasks, onApply, onCancel }: AIPromptProps) {
   const handleSubmit = (value: string) => {
     const trimmed = value.trim();
     if (trimmed.length === 0) return;
-    callAI(trimmed);
+    const instruction = targetTask
+      ? `タスク「${targetTask.title}」(ID: ${targetTask.id}) について: ${trimmed}`
+      : trimmed;
+    callAI(instruction);
   };
 
   const handleReviseSubmit = (value: string) => {
@@ -167,10 +171,10 @@ export default function AIPrompt({ tasks, onApply, onCancel }: AIPromptProps) {
       <Box flexDirection="column" borderStyle="round" borderColor="#89dceb" paddingX={1}>
         <Text bold color="#89dceb">AI提案 ({operations.length}件)</Text>
         {renderOps()}
-        <Box marginTop={1}>
-          <Text bold>Enter</Text><Text dimColor> 適用 · </Text>
-          <Text bold>e</Text><Text dimColor> 修正 · </Text>
-          <Text bold>Esc</Text><Text dimColor> キャンセル</Text>
+        <Box marginTop={1} gap={1}>
+          <Text><Text bold>Enter</Text><Text dimColor> 適用</Text></Text>
+          <Text><Text bold>e</Text><Text dimColor> 修正</Text></Text>
+          <Text><Text bold>Esc</Text><Text dimColor> キャンセル</Text></Text>
         </Box>
       </Box>
     );
@@ -179,11 +183,13 @@ export default function AIPrompt({ tasks, onApply, onCancel }: AIPromptProps) {
   return (
     <Box>
       <Text color="#89dceb" bold>✦ </Text>
+      {targetTask && <Text color="#f9e2af">「{targetTask.title}」</Text>}
+      {targetTask && <Text dimColor> → </Text>}
       <TextInput
         value={prompt}
         onChange={setPrompt}
         onSubmit={handleSubmit}
-        placeholder="自然言語で指示..."
+        placeholder={targetTask ? "このタスクへの指示..." : "自然言語で指示..."}
       />
     </Box>
   );
